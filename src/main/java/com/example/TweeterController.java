@@ -15,55 +15,62 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class TweeterController {
-	private final JdbcTemplate jdbcTemplate;
+public class TweeterController
+{
+  private final JdbcTemplate jdbcTemplate;
 
-	public TweeterController(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
-	}
+  public TweeterController(JdbcTemplate jdbcTemplate)
+  {
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
-	@GetMapping("v1/timelines")
-	List<Tweet> getTimelines() {
-		return jdbcTemplate.query(
-				"SELECT tweet_id, text, username, created_at FROM tweets ORDER BY created_at DESC",
-				tweetRowMapper);
-	}
+  @GetMapping("v1/timelines")
+  List<Tweet> getTimelines()
+  {
+    return jdbcTemplate.query(
+        "SELECT tweet_id, text, username, created_at FROM tweets ORDER BY created_at DESC",
+        tweetRowMapper);
+  }
 
-	@GetMapping("v1/tweets")
-	List<Tweet> tweets(Authentication authentication) {
-		String username = authentication.getName();
-		return jdbcTemplate.query(
-				"SELECT tweet_id, text, username, created_at FROM tweets WHERE username=? ORDER BY created_at DESC",
-				tweetRowMapper, username);
-	}
+  @GetMapping("v1/tweets")
+  List<Tweet> tweets(Authentication authentication)
+  {
+    String username = authentication.getName();
+    return jdbcTemplate.query(
+        "SELECT tweet_id, text, username, created_at FROM tweets WHERE username=? ORDER BY created_at DESC",
+        tweetRowMapper, username);
+  }
 
-	@PostMapping("v1/tweets")
-	Tweet postTweets(@RequestBody Tweet tweet, Authentication authentication) {
-		tweet.tweetId = UUID.randomUUID();
-		tweet.createdAt = new Date();
-		tweet.username = authentication.getName();
-		jdbcTemplate.update(
-				"INSERT INTO tweets(tweet_id, text, username, created_at) VALUES (?, ?, ?, ?)",
-				tweet.tweetId.toString(), tweet.text, tweet.username, tweet.createdAt);
-		return tweet;
-	}
+  @PostMapping("v1/tweets")
+  Tweet postTweets(@RequestBody Tweet tweet, Authentication authentication)
+  {
+    tweet.tweetId = UUID.randomUUID();
+    tweet.createdAt = new Date();
+    tweet.username = authentication.getName();
+    jdbcTemplate.update(
+        "INSERT INTO tweets(tweet_id, text, username, created_at) VALUES (?, ?, ?, ?)",
+        tweet.tweetId.toString(), tweet.text, tweet.username, tweet.createdAt);
+    return tweet;
+  }
 
-	static class Tweet {
-		public UUID tweetId;
-		public String text;
-		public String username;
-		public Date createdAt;
-	}
+  static class Tweet
+  {
+    public UUID tweetId;
+    public String text;
+    public String username;
+    public Date createdAt;
+  }
 
-	RowMapper<Tweet> tweetRowMapper = new RowMapper<Tweet>() {
-		@Override
-		public Tweet mapRow(ResultSet rs, int i) throws SQLException {
-			Tweet tweet = new Tweet();
-			tweet.tweetId = UUID.fromString(rs.getString("tweet_id"));
-			tweet.text = rs.getString("text");
-			tweet.username = rs.getString("username");
-			tweet.createdAt = new Date(rs.getTimestamp("created_at").getTime());
-			return tweet;
-		}
-	};
+  RowMapper<Tweet> tweetRowMapper = new RowMapper<Tweet>() {
+    @Override
+    public Tweet mapRow(ResultSet rs, int i) throws SQLException
+    {
+      Tweet tweet = new Tweet();
+      tweet.tweetId = UUID.fromString(rs.getString("tweet_id"));
+      tweet.text = rs.getString("text");
+      tweet.username = rs.getString("username");
+      tweet.createdAt = new Date(rs.getTimestamp("created_at").getTime());
+      return tweet;
+    }
+  };
 }
