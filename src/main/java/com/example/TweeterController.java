@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.core.Authentication;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class TweeterController
 {
+  private static final Logger log = LoggerFactory.getLogger(TweeterController.class);
   private final JdbcTemplate jdbcTemplate;
 
   public TweeterController(JdbcTemplate jdbcTemplate)
@@ -27,6 +30,7 @@ public class TweeterController
   @GetMapping("v1/timelines")
   List<Tweet> getTimelines()
   {
+    log.debug("Returns your timelines");
     return jdbcTemplate.query(
         "SELECT tweet_id, text, username, created_at FROM tweets ORDER BY created_at DESC",
         tweetRowMapper);
@@ -35,6 +39,7 @@ public class TweeterController
   @GetMapping("v1/tweets")
   List<Tweet> tweets(Authentication authentication)
   {
+    log.debug("Returns your tweets");
     String username = authentication.getName();
     return jdbcTemplate.query(
         "SELECT tweet_id, text, username, created_at FROM tweets WHERE username=? ORDER BY created_at DESC",
@@ -44,6 +49,7 @@ public class TweeterController
   @PostMapping("v1/tweets")
   Tweet postTweets(@RequestBody Tweet tweet, Authentication authentication)
   {
+    log.debug("Tweet your message");
     tweet.tweetId = UUID.randomUUID();
     tweet.createdAt = new Date();
     tweet.username = authentication.getName();
